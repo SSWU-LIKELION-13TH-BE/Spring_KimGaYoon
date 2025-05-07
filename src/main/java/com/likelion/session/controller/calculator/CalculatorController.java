@@ -18,13 +18,13 @@ public class CalculatorController {
         this.calculatorService = calculatorService;
     }
 
-    @GetMapping("/add")
-    public int addTwoNumbers(CalculatorAddRequest request) {
+    @PostMapping("/add")
+    public int addTwoNumbers(@RequestBody CalculatorAddRequest request) {
         return calculatorService.add(request.getNumber1(), request.getNumber2());
     }
 
-    @GetMapping("/subtract")
-    public int subtractTwoNumbers(CalculatorSubtractRequest request) {
+    @PostMapping("/subtract")
+    public int subtractTwoNumbers(@RequestBody CalculatorSubtractRequest request) {
         return calculatorService.subtract(request.getNumber1(), request.getNumber2());
     }
 
