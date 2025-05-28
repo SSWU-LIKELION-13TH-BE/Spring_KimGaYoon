@@ -2,6 +2,7 @@ package com.likelion.Assist_Backend.controller;
 
 import com.likelion.Assist_Backend.dto.UserLoginRequestDto;
 import com.likelion.Assist_Backend.dto.UserLoginResponseDto;
+import com.likelion.Assist_Backend.dto.UserPasswordChangeRequestDto;
 import com.likelion.Assist_Backend.dto.UserSignupRequestDto;
 import com.likelion.Assist_Backend.entity.User;
 import com.likelion.Assist_Backend.repository.UserRepository;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequestMapping("/api/users")
@@ -47,4 +49,12 @@ public class UserController {
     }
     // 사용자 정보 DTO
     public record UserDto(String userId, String name, String profileImage) {}
+
+    //비밀번호 변경 API
+    @PostMapping("/password")
+    public ResponseEntity<?> changePassword(@RequestBody UserPasswordChangeRequestDto dto, @AuthenticationPrincipal UserDetails userDetails) {
+        return userService.changePassword(userDetails.getUsername(), dto);
+    }
+
+
 }
