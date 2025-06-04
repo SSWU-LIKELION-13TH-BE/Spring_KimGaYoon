@@ -1,5 +1,6 @@
 package com.likelion.Assist_Backend.controller;
 
+import com.likelion.Assist_Backend.apiPayload.dto.ApiResponse;
 import com.likelion.Assist_Backend.dto.UserLoginRequestDto;
 import com.likelion.Assist_Backend.dto.UserLoginResponseDto;
 import com.likelion.Assist_Backend.dto.UserPasswordChangeRequestDto;
@@ -7,6 +8,8 @@ import com.likelion.Assist_Backend.dto.UserSignupRequestDto;
 import com.likelion.Assist_Backend.entity.User;
 import com.likelion.Assist_Backend.repository.UserRepository;
 import com.likelion.Assist_Backend.service.UserService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
+//@RequiredArgsConstructor
 
 public class UserController {
     private final UserService userService;
@@ -28,16 +32,14 @@ public class UserController {
 
     //회원가입
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody UserSignupRequestDto userDTO) {
-        userService.signup(userDTO);
-        return ResponseEntity.ok("회원가입 성공!");
+    public ApiResponse<String> signup(@Valid @RequestBody UserSignupRequestDto userDTO) {
+        return userService.signup(userDTO);
     }
 
     //로그인
     @PostMapping("/login")
-    public ResponseEntity<UserLoginResponseDto> login(@RequestBody UserLoginRequestDto userDTO) {
-        UserLoginResponseDto response = userService.login(userDTO);
-        return ResponseEntity.ok(response);
+    public ApiResponse<UserLoginResponseDto> login(@RequestBody UserLoginRequestDto userDTO) {
+        return userService.login(userDTO);
     }
 
     //사용자 정보 조회 API
@@ -52,7 +54,8 @@ public class UserController {
 
     //비밀번호 변경 API
     @PostMapping("/password")
-    public ResponseEntity<?> changePassword(@RequestBody UserPasswordChangeRequestDto dto, @AuthenticationPrincipal UserDetails userDetails) {
+    public ApiResponse<String> changePassword(@Valid @RequestBody UserPasswordChangeRequestDto dto,
+                                              @AuthenticationPrincipal UserDetails userDetails) {
         return userService.changePassword(userDetails.getUsername(), dto);
     }
 

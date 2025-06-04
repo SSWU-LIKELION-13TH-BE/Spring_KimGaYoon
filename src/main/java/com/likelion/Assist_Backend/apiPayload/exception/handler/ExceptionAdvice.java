@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
@@ -19,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-@RestController
+@RestControllerAdvice
 public class ExceptionAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(GeneralException.class)
     public ResponseEntity<ApiResponse<Object>> handleCustomException (GeneralException e){

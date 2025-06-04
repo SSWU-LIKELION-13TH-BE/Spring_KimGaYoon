@@ -1,5 +1,9 @@
 package com.likelion.Assist_Backend.service;
 
+import com.likelion.Assist_Backend.apiPayload.code.ErrorStatus;
+import com.likelion.Assist_Backend.apiPayload.code.SuccessStatus;
+import com.likelion.Assist_Backend.apiPayload.dto.ApiResponse;
+import com.likelion.Assist_Backend.apiPayload.exception.GeneralException;
 import com.likelion.Assist_Backend.dto.UserLoginRequestDto;
 import com.likelion.Assist_Backend.dto.UserLoginResponseDto;
 import com.likelion.Assist_Backend.dto.UserPasswordChangeRequestDto;
@@ -29,7 +33,11 @@ public class UserService implements UserDetailsService {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    public void signup(UserSignupRequestDto requestDto) {
+    public ApiResponse<String> signup(UserSignupRequestDto requestDto) {
+        if (userRepository.existsByUserId(requestDto.getUserId())) {
+            throw new GeneralException(ErrorStatus.USERNAME_ALREADY_EXISTS);
+        }
+
         User user = new User();
         user.setUserId(requestDto.getUserId());
         user.setPassword(passwordEncoder.encode(requestDto.getPassword ()));
@@ -37,18 +45,21 @@ public class UserService implements UserDetailsService {
         user.setProfileImage(requestDto.getProfileImage());
 
         userRepository.save(user);
+
+        return ApiResponse.of(SuccessStatus._OK, "회원가입 성공!");
     }
 
-    public UserLoginResponseDto login(UserLoginRequestDto requestDto) {
+    public ApiResponse<UserLoginResponseDto> login(UserLoginRequestDto requestDto) {
         User user = userRepository.findByUserId(requestDto.getUserId())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with ID " + requestDto.getUserId()));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
         if (!passwordEncoder.matches(requestDto.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("Invalid password");
+            throw new GeneralException(ErrorStatus.PASSWORD_MISMATCH);
         }
 
         String token = jwtTokenProvider.createToken(user.getUserId());
+        UserLoginResponseDto responseDto = new UserLoginResponseDto(user.getUserId(), token);
 
-        return new UserLoginResponseDto(user.getUserId(), token);
+        return ApiResponse.of(SuccessStatus._OK, responseDto);
     }
 
     @Override
@@ -62,27 +73,22 @@ public class UserService implements UserDetailsService {
                 .build();
     }
 
-    public ResponseEntity<?> changePassword(String userId, UserPasswordChangeRequestDto dto) {
+    public ApiResponse<String> changePassword(String userId, UserPasswordChangeRequestDto dto) {
         User user = userRepository.findByUserId(userId)
-                .orElse(null);
-
-        if (user == null) {
-            return ResponseEntity.badRequest().body(Map.of("message", "사용자를 찾을 수 없습니다."));
-        }
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
-            return ResponseEntity.badRequest().body(Map.of("message", "현재 비밀번호가 일치하지 않습니다."));
+            throw new GeneralException(ErrorStatus.PASSWORD_MISMATCH);
         }
 
         if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
-            return ResponseEntity.badRequest().body(Map.of("message", "새 비밀번호와 확인 비밀번호가 일치하지 않습니다."));
+            throw new GeneralException(ErrorStatus.PASSWORD_CONFIRM_MISMATCH);
         }
 
-        String encodedNewPassword = passwordEncoder.encode(dto.getNewPassword());
-        user.setPassword(encodedNewPassword);
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
         userRepository.save(user);
 
-        return ResponseEntity.ok(Map.of("message", "비밀번호가 성공적으로 변경되었습니다."));
+        return ApiResponse.of(SuccessStatus._OK, "비밀번호가 성공적으로 변경되었습니다.");
     }
 
 
